@@ -3,7 +3,8 @@ const ASSETS = [
   './',
   './index.html',
   './style.css',
-  './script.js'
+  './script.js',
+  './manifest.json'
 ];
 
 // Enstale Service Worker la epi sove fichye yo nan kach (Cache)
