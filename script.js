@@ -41,12 +41,21 @@ const editMsgBtn = document.getElementById('editMsgBtn');
 const deleteMsgBtn = document.getElementById('deleteMsgBtn');
 const themeBtn = document.getElementById('themeBtn');
 
-// Variables d'état
 let currentUserId = null;
 let currentPeerId = null;
 let chatRef = null;
 let selectedMessageId = null;
 let selectedMessageSender = null;
+
+// Débloquer le son dès le premier clic sur l'écran
+document.addEventListener('click', () => {
+    if (notifSound && notifSound.paused) {
+        notifSound.play().then(() => {
+            notifSound.pause();
+            notifSound.currentTime = 0;
+        }).catch(e => console.log("Attente d'interaction :", e));
+    }
+}, { once: true });
 
 // ==========================================
 // 3. GESTION DE LA SÉCURITÉ & AUTH
@@ -65,7 +74,6 @@ auth.onAuthStateChanged((user) => {
     }
 });
 
-// Basculer entre Connexion et Inscription
 document.getElementById('showSignup').addEventListener('click', () => {
     loginForm.style.display = 'none'; signupForm.style.display = 'block';
 });
@@ -73,28 +81,23 @@ document.getElementById('showLogin').addEventListener('click', () => {
     signupForm.style.display = 'none'; loginForm.style.display = 'block';
 });
 
-// Création de compte
 document.getElementById('signupBtn').addEventListener('click', () => {
     const id = document.getElementById('signupId').value.trim().toLowerCase();
     const pass = document.getElementById('signupPassword').value;
     if(!id || pass.length < 6) return alert("Veuillez entrer un ID et un mot de passe (6 caractères min).");
-    
     auth.createUserWithEmailAndPassword(`${id}@fedchat.com`, pass)
         .then(() => alert("Compte créé avec succès !"))
         .catch(err => alert("Erreur : " + err.message));
 });
 
-// Connexion
 document.getElementById('loginBtn').addEventListener('click', () => {
     const id = document.getElementById('loginId').value.trim().toLowerCase();
     const pass = document.getElementById('loginPassword').value;
     if(!id || !pass) return alert("Veuillez remplir tous les champs.");
-    
     auth.signInWithEmailAndPassword(`${id}@fedchat.com`, pass)
         .catch(err => alert("Erreur de connexion. Vérifiez votre ID ou mot de passe."));
 });
 
-// Déconnexion
 document.getElementById('logoutBtn').addEventListener('click', () => {
     auth.signOut();
     if(chatRef) chatRef.off();
@@ -103,7 +106,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 
 function resetChatUI() {
-    document.getElementById('messagesArea').innerHTML = '<div class="system-message">Entrez un ID ci-dessus pour démarrer une conversation sécurisée.</div>';
+    document.getElementById('messagesArea').innerHTML = '<div class="system-message">Entrez un ID ci-dessus pour démarrer une conversation.</div>';
     document.getElementById('activeChatInfo').style.display = 'none';
     document.getElementById('messageInput').disabled = true;
     document.getElementById('sendBtn').disabled = true;
@@ -111,23 +114,16 @@ function resetChatUI() {
 }
 
 // ==========================================
-// 4. GESTION DU MENU UNIQUE & ACTIONS
+// 4. GESTION DU MENU & ACTIONS
 // ==========================================
 menuToggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     dropdownMenu.classList.toggle('show');
 });
+document.addEventListener('click', () => dropdownMenu.classList.remove('show'));
 
-document.addEventListener('click', () => {
-    dropdownMenu.classList.remove('show');
-});
+themeBtn.addEventListener('click', () => document.body.classList.toggle('light-theme'));
 
-// Changer de thème (Clair / Sombre)
-themeBtn.addEventListener('click', () => {
-    document.body.classList.toggle('light-theme');
-});
-
-// Fonction pour effacer la sélection d'un message
 function clearSelection() {
     if(selectedMessageId) {
         const prevSelected = document.getElementById(selectedMessageId);
@@ -139,42 +135,64 @@ function clearSelection() {
     deleteMsgBtn.classList.add('disabled-menu-item');
 }
 
-// Supprimer le message sélectionné
+// SUPPRIMER LE MESSAGE
 deleteMsgBtn.addEventListener('click', () => {
     if(!selectedMessageId) return;
-    if(selectedMessageSender !== currentUserId) {
-        alert("Vous ne pouvez supprimer que vos propres messages.");
-        return;
-    }
+    
     if(confirm("Voulez-vous vraiment supprimer ce message ?")) {
         const chatId = [currentUserId, currentPeerId].sort().join('_');
-        db.ref(`chats/${chatId}/messages/${selectedMessageId}`).remove()
-            .then(() => clearSelection())
-            .catch(err => alert("Erreur: " + err.message));
+        
+        if (selectedMessageSender === currentUserId) {
+            // C'est mon message : je le supprime pour TOUT LE MONDE
+            db.ref(`chats/${chatId}/messages/${selectedMessageId}`).remove()
+                .then(() => clearSelection())
+                .catch(err => alert("Erreur: " + err.message));
+        } else {
+            // C'est le message de l'autre : je le cache uniquement pour MOI ("Delete for me")
+            db.ref(`chats/${chatId}/messages/${selectedMessageId}/deletedFor/${currentUserId}`).set(true)
+                .then(() => {
+                    const bubble = document.getElementById(selectedMessageId);
+                    if(bubble) bubble.remove();
+                    clearSelection();
+                })
+                .catch(err => alert("Erreur: " + err.message));
+        }
     }
 });
 
-// Modifier le message sélectionné
+// MODIFIER LE MESSAGE
 editMsgBtn.addEventListener('click', () => {
     if(!selectedMessageId) return;
     if(selectedMessageSender !== currentUserId) {
         alert("Vous ne pouvez modifier que vos propres messages.");
         return;
     }
-    const currentText = document.getElementById(selectedMessageId).childNodes[0].textContent.trim();
+    
+    // Récupérer uniquement le texte, pas l'heure
+    const msgNode = document.getElementById(selectedMessageId);
+    let currentText = "";
+    for (let node of msgNode.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            currentText += node.textContent;
+        }
+    }
+    currentText = currentText.trim();
+    
     const newText = prompt("Modifiez votre message :", currentText);
     
-    if(newText && newText.trim() !== "") {
+    if(newText && newText.trim() !== "" && newText.trim() !== currentText) {
         const chatId = [currentUserId, currentPeerId].sort().join('_');
+        // On enregistre le texte et on active un paramètre "isEdited" au lieu d'ajouter le mot dans le texte
         db.ref(`chats/${chatId}/messages/${selectedMessageId}`).update({
-            text: newText.trim() + " (Modifié)"
+            text: newText.trim(),
+            isEdited: true
         }).then(() => clearSelection())
           .catch(err => alert("Erreur: " + err.message));
     }
 });
 
 // ==========================================
-// 5. LOGIQUE DU CHAT (PEER TO PEER)
+// 5. LOGIQUE DU CHAT
 // ==========================================
 document.getElementById('connectPeerBtn').addEventListener('click', () => {
     const peer = document.getElementById('peerIdInput').value.trim().toLowerCase();
@@ -195,7 +213,6 @@ function loadMessages() {
     const messagesDiv = document.getElementById('messagesArea');
     
     if(chatRef) chatRef.off(); 
-    
     chatRef = db.ref(`chats/${chatId}/messages`);
     messagesDiv.innerHTML = '';
     
@@ -205,19 +222,20 @@ function loadMessages() {
         const msg = snapshot.val();
         const msgKey = snapshot.key;
         
+        // Si le message a été supprimé pour cet utilisateur spécifique, on ne l'affiche pas
+        if (msg.deletedFor && msg.deletedFor[currentUserId]) return;
+        
         const div = document.createElement('div');
         const isMe = msg.sender === currentUserId;
         div.className = `message-bubble ${isMe ? 'msg-sent' : 'msg-received'}`;
         div.id = msgKey;
         
         const timeString = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const editedTag = msg.isEdited ? ' <span style="font-size: 11px; opacity: 0.6; font-style: italic;">(Modifié)</span>' : '';
         
-        div.innerHTML = `
-            ${msg.text}
-            <span class="msg-time">${timeString}</span>
-        `;
+        div.innerHTML = `${msg.text}${editedTag}<span class="msg-time">${timeString}</span>`;
         
-        // Clic pour sélectionner un message afin de le modifier/supprimer
+        // Sélectionner le message
         div.addEventListener('click', (e) => {
             e.stopPropagation();
             clearSelection();
@@ -227,37 +245,50 @@ function loadMessages() {
             div.classList.add('selected');
             
             if(isMe) {
-                editMsgBtn.classList.remove('disabled-menu-item');
-                deleteMsgBtn.classList.remove('disabled-menu-item');
+                editMsgBtn.classList.remove('disabled-menu-item'); // Peut modifier
+                deleteMsgBtn.classList.remove('disabled-menu-item'); // Peut supprimer
+            } else {
+                editMsgBtn.classList.add('disabled-menu-item'); // Ne peut pas modifier le message de l'autre
+                deleteMsgBtn.classList.remove('disabled-menu-item'); // MAIS PEUT LE SUPPRIMER POUR LUI
             }
         });
         
         messagesDiv.appendChild(div);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
         
+        // Jwe son sèlman si se lòt moun nan ki voye l
         if(!isMe && !isInitialLoad && notifSound) {
-            notifSound.play().catch(e => console.log("Son bloqué par le navigateur"));
+            notifSound.currentTime = 0;
+            let playPromise = notifSound.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(e => console.log("Son an poko gen pèmisyon nan navigatè a"));
+            }
         }
     });
 
-    // Écouter les modifications en temps réel (Modification)
+    // Modification en temps réel
     chatRef.on('child_changed', (snapshot) => {
         const msgKey = snapshot.key;
         const msg = snapshot.val();
         const msgBubble = document.getElementById(msgKey);
+        
+        if (msg.deletedFor && msg.deletedFor[currentUserId]) {
+            if(msgBubble) msgBubble.remove();
+            return;
+        }
+
         if(msgBubble) {
             const timeString = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            msgBubble.innerHTML = `${msg.text} <span class="msg-time">${timeString}</span>`;
+            const editedTag = msg.isEdited ? ' <span style="font-size: 11px; opacity: 0.6; font-style: italic;">(Modifié)</span>' : '';
+            msgBubble.innerHTML = `${msg.text}${editedTag}<span class="msg-time">${timeString}</span>`;
         }
     });
 
-    // Écouter les suppressions en temps réel (Suppression)
+    // Suppression en temps réel (pour tout le monde)
     chatRef.on('child_removed', (snapshot) => {
         const msgKey = snapshot.key;
         const msgBubble = document.getElementById(msgKey);
-        if(msgBubble) {
-            msgBubble.remove();
-        }
+        if(msgBubble) msgBubble.remove();
     });
 
     chatRef.once('value').then(() => { isInitialLoad = false; });
