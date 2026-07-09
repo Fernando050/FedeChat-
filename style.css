@@ -273,3 +273,32 @@ input:disabled { opacity: 0.5; cursor: not-allowed; }
     .glass-container { border-radius: 0; }
     .message-bubble { max-width: 85%; }
 }
+
+/* STIL POU OPSYON SON YO NAN MENI AN */
+.menu-setting {
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+.menu-setting label {
+    color: inherit;
+    cursor: pointer;
+}
+.menu-setting select {
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    padding: 5px;
+    outline: none;
+    font-size: 12px;
+    width: 100px;
+    cursor: pointer;
+}
+body.light-theme .menu-setting select {
+    background: white;
+    color: #333;
+    border-color: #ccc;
+}
