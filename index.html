@@ -26,6 +26,8 @@
         <h1 class="graffiti-logo">FedChat</h1>
         
         <div id="loginForm">
+            <button class="btn install-btn" id="installAppBtn" style="display: none;">📥 Enstale Aplikasyon an</button>
+            
             <p class="subtitle">Konekte pou w antre nan zòn nan</p>
             <div class="input-group">
                 <input type="text" id="loginId" placeholder="Antre ID ou">
@@ -56,9 +58,16 @@
                 <span class="status-dot"></span>
                 <span id="myIdDisplay" class="my-id-text">Konekte kòm: ...</span>
             </div>
-            <div class="header-actions">
-                <button class="btn theme-btn" id="themeBtn" title="Chanje Tèm">🎨</button>
-                <button class="btn danger-btn-sm" id="logoutBtn">Dekonekte</button>
+            
+            <div class="header-menu-container">
+                <button class="btn header-menu-btn" id="headerMenuBtn">⋮</button>
+                <div class="header-dropdown" id="headerDropdown">
+                    <button id="menuThemeBtn">🎨 Chanje Tèm</button>
+                    <button id="menuEditBtn" style="display: none;">✏️ Modifye Mesaj</button>
+                    <button id="menuDeleteBtn" style="display: none; color: #ff4d4d;">🗑️ Efase Mesaj</button>
+                    <div class="menu-divider"></div>
+                    <button id="menuLogoutBtn" style="color: #ff4d4d;">🚪 Dekonekte</button>
+                </div>
             </div>
         </div>
 
@@ -72,7 +81,7 @@
         </div>
 
         <div class="messages-area" id="messagesArea">
-            <div class="system-message">Antre yon ID anlè a pou w kòmanse yon konvèsasyon sekirize.</div>
+            <div class="system-message">Antre yon ID anlè a pou w kòmanse yon konvèsasyon.</div>
         </div>
 
         <div class="input-area">
