@@ -1,18 +1,16 @@
 <!DOCTYPE html>
-<html lang="ht">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FedChat - Sekirite ak Stil</title>
-    
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#00ffcc">
+    <title>FedChat - Sécurité et Style</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sedgwick+Ave+Display&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
 
     <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
@@ -26,29 +24,27 @@
         <h1 class="graffiti-logo">FedChat</h1>
         
         <div id="loginForm">
-            <button class="btn install-btn" id="installAppBtn" style="display: none;">📥 Enstale Aplikasyon an</button>
-            
-            <p class="subtitle">Konekte pou w antre nan zòn nan</p>
+            <p class="subtitle">Connectez-vous pour entrer dans la zone</p>
             <div class="input-group">
-                <input type="text" id="loginId" placeholder="Antre ID ou">
+                <input type="text" id="loginId" placeholder="Entrez votre ID">
             </div>
             <div class="input-group">
-                <input type="password" id="loginPassword" placeholder="Modpas ou">
+                <input type="password" id="loginPassword" placeholder="Votre mot de passe">
             </div>
-            <button class="btn graffiti-btn" id="loginBtn">Konekte</button>
-            <p class="switch-text">Ou pa gen kont? <span id="showSignup">Kreye youn</span></p>
+            <button class="btn graffiti-btn" id="loginBtn">Se connecter</button>
+            <p class="switch-text">Pas de compte ? <span id="showSignup">Créez-en un</span></p>
         </div>
 
         <div id="signupForm" style="display: none;">
-            <p class="subtitle">Kreye yon ID inik pou w kòmanse</p>
+            <p class="subtitle">Créez un ID unique pour commencer</p>
             <div class="input-group">
-                <input type="text" id="signupId" placeholder="Kreye yon ID">
+                <input type="text" id="signupId" placeholder="Créez un ID">
             </div>
             <div class="input-group">
-                <input type="password" id="signupPassword" placeholder="Kreye yon Modpas">
+                <input type="password" id="signupPassword" placeholder="Créez un mot de passe">
             </div>
-            <button class="btn graffiti-btn" id="signupBtn">Anrejistre kont lan</button>
-            <p class="switch-text">Ou gen kont deja? <span id="showLogin">Konekte la a</span></p>
+            <button class="btn graffiti-btn" id="signupBtn">Créer le compte</button>
+            <p class="switch-text">Vous avez déjà un compte ? <span id="showLogin">Connectez-vous ici</span></p>
         </div>
     </div>
 
@@ -56,37 +52,37 @@
         <div class="chat-header">
             <div class="user-info">
                 <span class="status-dot"></span>
-                <span id="myIdDisplay" class="my-id-text">Konekte kòm: ...</span>
+                <span id="myIdDisplay" class="my-id-text">Connecté en tant que : ...</span>
             </div>
             
-            <div class="header-menu-container">
-                <button class="btn header-menu-btn" id="headerMenuBtn">⋮</button>
-                <div class="header-dropdown" id="headerDropdown">
-                    <button id="menuThemeBtn">🎨 Chanje Tèm</button>
-                    <button id="menuEditBtn" style="display: none;">✏️ Modifye Mesaj</button>
-                    <button id="menuDeleteBtn" style="display: none; color: #ff4d4d;">🗑️ Efase Mesaj</button>
-                    <div class="menu-divider"></div>
-                    <button id="menuLogoutBtn" style="color: #ff4d4d;">🚪 Dekonekte</button>
+            <div class="menu-container">
+                <button class="menu-dots-btn" id="menuToggleBtn">&#8942;</button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <button id="themeBtn">Changer de thème</button>
+                    <button id="editMsgBtn" class="disabled-menu-item">Modifier le message</button>
+                    <button id="deleteMsgBtn" class="disabled-menu-item">Supprimer le message</button>
+                    <hr>
+                    <button id="logoutBtn" style="color: #ff4d4d;">Se déconnecter</button>
                 </div>
             </div>
         </div>
 
         <div class="connect-peer-box">
-            <input type="text" id="peerIdInput" placeholder="Antre ID moun nan...">
-            <button class="btn connect-btn" id="connectPeerBtn">Kòmanse</button>
+            <input type="text" id="peerIdInput" placeholder="Entrez l'ID de la personne à contacter...">
+            <button class="btn connect-btn" id="connectPeerBtn">Discuter</button>
         </div>
 
         <div class="active-chat-info" id="activeChatInfo" style="display: none;">
-            Ap pale ak: <span id="chattingWithDisplay" class="neon-text">...</span>
+            Discussion avec : <span id="chattingWithDisplay" class="neon-text">...</span>
         </div>
 
         <div class="messages-area" id="messagesArea">
-            <div class="system-message">Antre yon ID anlè a pou w kòmanse yon konvèsasyon.</div>
+            <div class="system-message">Entrez un ID ci-dessus pour démarrer une conversation sécurisée.</div>
         </div>
 
         <div class="input-area">
-            <input type="text" id="messageInput" placeholder="Ekri mesaj ou a..." disabled>
-            <button class="btn send-btn" id="sendBtn" disabled>Voye</button>
+            <input type="text" id="messageInput" placeholder="Écrivez votre message..." disabled>
+            <button class="btn send-btn" id="sendBtn" disabled>Envoyer</button>
         </div>
     </div>
 
