@@ -1,7 +1,7 @@
 {
   "name": "FedChat",
   "short_name": "FedChat",
-  "description": "Yon aplikasyon mesaj sekirize ak meni entèaktif",
+  "description": "Une application de messagerie sécurisée",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f0c29",
