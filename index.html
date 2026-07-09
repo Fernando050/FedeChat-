@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FedChat - Sekirite ak Stil</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sedgwick+Ave+Display&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <audio id="notificationSound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
+
+    <div class="glass-container active" id="authScreen">
+        <h1 class="graffiti-logo">FedChat</h1>
+        
+        <div id="loginForm">
+            <p class="subtitle">Konekte pou w antre nan zòn nan</p>
+            <div class="input-group">
+                <input type="text" id="loginId" placeholder="Antre ID ou">
+            </div>
+            <div class="input-group">
+                <input type="password" id="loginPassword" placeholder="Modpas ou">
+            </div>
+            <button class="btn graffiti-btn" id="loginBtn">Konekte</button>
+            <p class="switch-text">Ou pa gen kont? <span id="showSignup">Kreye youn</span></p>
+        </div>
+
+        <div id="signupForm" style="display: none;">
+            <p class="subtitle">Kreye yon ID inik pou w kòmanse</p>
+            <div class="input-group">
+                <input type="text" id="signupId" placeholder="Kreye yon ID">
+            </div>
+            <div class="input-group">
+                <input type="password" id="signupPassword" placeholder="Kreye yon Modpas">
+            </div>
+            <button class="btn graffiti-btn" id="signupBtn">Anrejistre kont lan</button>
+            <p class="switch-text">Ou gen kont deja? <span id="showLogin">Konekte la a</span></p>
+        </div>
+    </div>
+
+    <div class="chat-container glass-container" id="chatScreen">
+        <div class="chat-header">
+            <div class="user-info">
+                <span class="status-dot"></span>
+                <span id="myIdDisplay" class="my-id-text">Konekte kòm: ...</span>
+            </div>
+            <button class="btn danger-btn-sm" id="logoutBtn">Dekonekte</button>
+        </div>
+
+        <div class="connect-peer-box">
+            <input type="text" id="peerIdInput" placeholder="Antre ID moun ou vle pale avè l la...">
+            <button class="btn connect-btn" id="connectPeerBtn">Kòmanse Pale</button>
+        </div>
+
+        <div class="active-chat-info" id="activeChatInfo" style="display: none;">
+            Ap pale ak: <span id="chattingWithDisplay" class="neon-text">...</span>
+        </div>
+
+        <div class="messages-area" id="messagesArea">
+            <div class="system-message">Antre yon ID anlè a pou w kòmanse yon konvèsasyon sekirize.</div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="Ekri mesaj ou a..." disabled>
+            <button class="btn send-btn" id="sendBtn" disabled>Voye</button>
+        </div>
+    </div>
+
+    <script defer src="script.js"></script>
+</body>
+</html>
