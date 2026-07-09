@@ -352,3 +352,8 @@ function sendMessage() {
     
     input.value = '';
 }
+
+    navigator.serviceWorker.ready.then(registration => {
+    registration.update();
+});
+
