@@ -40,6 +40,37 @@ const dropdownMenu = document.getElementById('dropdownMenu');
 const editMsgBtn = document.getElementById('editMsgBtn');
 const deleteMsgBtn = document.getElementById('deleteMsgBtn');
 const themeBtn = document.getElementById('themeBtn');
+// ELEMAN POU SON YO
+const soundToggle = document.getElementById('soundToggle');
+const soundSelect = document.getElementById('soundSelect');
+
+// Chaje preferans itilizatè a si yo te sove yo deja
+let isSoundEnabled = localStorage.getItem('fedchat_sound_enabled') !== 'false'; // True pa defo
+let selectedSoundUrl = localStorage.getItem('fedchat_sound_url') || soundSelect.value;
+
+// Aplike preferans yo
+soundToggle.checked = isSoundEnabled;
+soundSelect.value = selectedSoundUrl;
+if (notifSound) notifSound.src = selectedSoundUrl;
+
+// Lè moun nan aktive/dezaktive son an
+soundToggle.addEventListener('change', (e) => {
+    isSoundEnabled = e.target.checked;
+    localStorage.setItem('fedchat_sound_enabled', isSoundEnabled); // Sove chwa a
+});
+
+// Lè moun nan chwazi yon lòt son
+soundSelect.addEventListener('change', (e) => {
+    selectedSoundUrl = e.target.value;
+    if (notifSound) notifSound.src = selectedSoundUrl;
+    localStorage.setItem('fedchat_sound_url', selectedSoundUrl); // Sove chwa a
+    
+    // Jwe ti bout son an pou l ka tande kisa l chwazi a (si son an aktive)
+    if (isSoundEnabled && notifSound) {
+        notifSound.currentTime = 0;
+        notifSound.play().catch(err => console.log("En attente...", err));
+    }
+});
 
 let currentUserId = null;
 let currentPeerId = null;
@@ -265,12 +296,12 @@ function loadMessages() {
         messagesDiv.appendChild(div);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
         
-        // Jouer le son si ce n'est pas moi et que l'audio est débloqué
-        if(!isMe && !isInitialLoad && notifSound && audioUnlocked) {
+                // JOUER LE SON (Sèlman si bouton an aktive)
+        if(!isMe && !isInitialLoad && notifSound && isAudioUnlocked && isSoundEnabled) {
             notifSound.currentTime = 0;
-            notifSound.play().catch(e => console.warn("Impossible de jouer le son:", e));
+            notifSound.play().catch(e => console.log("Erreur audio non critique"));
         }
-    });
+
 
     // Lè yon mesaj change (swa yo modifye l, swa lè a konfime)
     chatRef.on('child_changed', (snapshot) => {
