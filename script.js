@@ -46,16 +46,28 @@ let currentPeerId = null;
 let chatRef = null;
 let selectedMessageId = null;
 let selectedMessageSender = null;
+let audioUnlocked = false;
 
-// Débloquer le son dès le premier clic sur l'écran
-document.addEventListener('click', () => {
-    if (notifSound && notifSound.paused) {
+// ==========================================
+// DÉBLOQUER LE SON DE FORCE (Anti-blocage navigateur)
+// ==========================================
+function unlockAudio() {
+    if (!audioUnlocked && notifSound) {
+        notifSound.volume = 0; // Jwe l an silans avan pou navigatè a bay pèmisyon
         notifSound.play().then(() => {
             notifSound.pause();
             notifSound.currentTime = 0;
-        }).catch(e => console.log("Attente d'interaction :", e));
+            notifSound.volume = 1; // Remete volim nan nòmal pou lè l ap sonnen vre
+            audioUnlocked = true;
+            // Retire aksyon an pou l pa plede fèt chak fwa
+            document.removeEventListener('click', unlockAudio);
+            document.removeEventListener('touchstart', unlockAudio);
+        }).catch(e => console.warn("En attente du déblocage audio..."));
     }
-}, { once: true });
+}
+// Ekoute premye fwa itilizatè a touche ekran an ou klike
+document.addEventListener('click', unlockAudio);
+document.addEventListener('touchstart', unlockAudio);
 
 // ==========================================
 // 3. GESTION DE LA SÉCURITÉ & AUTH
@@ -143,12 +155,12 @@ deleteMsgBtn.addEventListener('click', () => {
         const chatId = [currentUserId, currentPeerId].sort().join('_');
         
         if (selectedMessageSender === currentUserId) {
-            // C'est mon message : je le supprime pour TOUT LE MONDE
+            // Supprimer pour tout le monde si c'est mon message
             db.ref(`chats/${chatId}/messages/${selectedMessageId}`).remove()
                 .then(() => clearSelection())
                 .catch(err => alert("Erreur: " + err.message));
         } else {
-            // C'est le message de l'autre : je le cache uniquement pour MOI ("Delete for me")
+            // Supprimer uniquement pour moi ("Delete for me")
             db.ref(`chats/${chatId}/messages/${selectedMessageId}/deletedFor/${currentUserId}`).set(true)
                 .then(() => {
                     const bubble = document.getElementById(selectedMessageId);
@@ -168,7 +180,6 @@ editMsgBtn.addEventListener('click', () => {
         return;
     }
     
-    // Récupérer uniquement le texte, pas l'heure
     const msgNode = document.getElementById(selectedMessageId);
     let currentText = "";
     for (let node of msgNode.childNodes) {
@@ -182,10 +193,9 @@ editMsgBtn.addEventListener('click', () => {
     
     if(newText && newText.trim() !== "" && newText.trim() !== currentText) {
         const chatId = [currentUserId, currentPeerId].sort().join('_');
-        // On enregistre le texte et on active un paramètre "isEdited" au lieu d'ajouter le mot dans le texte
         db.ref(`chats/${chatId}/messages/${selectedMessageId}`).update({
             text: newText.trim(),
-            isEdited: true
+            isEdited: true // Se SÈLMAN LÈ SA li pral pase a true
         }).then(() => clearSelection())
           .catch(err => alert("Erreur: " + err.message));
     }
@@ -222,7 +232,6 @@ function loadMessages() {
         const msg = snapshot.val();
         const msgKey = snapshot.key;
         
-        // Si le message a été supprimé pour cet utilisateur spécifique, on ne l'affiche pas
         if (msg.deletedFor && msg.deletedFor[currentUserId]) return;
         
         const div = document.createElement('div');
@@ -231,11 +240,11 @@ function loadMessages() {
         div.id = msgKey;
         
         const timeString = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        const editedTag = msg.isEdited ? ' <span style="font-size: 11px; opacity: 0.6; font-style: italic;">(Modifié)</span>' : '';
+        // Verifikasyon Strik pou l pa mete "Modifié" pou granmesi
+        const editedTag = (msg.isEdited === true) ? ' <span style="font-size: 11px; opacity: 0.6; font-style: italic;">(Modifié)</span>' : '';
         
         div.innerHTML = `${msg.text}${editedTag}<span class="msg-time">${timeString}</span>`;
         
-        // Sélectionner le message
         div.addEventListener('click', (e) => {
             e.stopPropagation();
             clearSelection();
@@ -245,28 +254,25 @@ function loadMessages() {
             div.classList.add('selected');
             
             if(isMe) {
-                editMsgBtn.classList.remove('disabled-menu-item'); // Peut modifier
-                deleteMsgBtn.classList.remove('disabled-menu-item'); // Peut supprimer
+                editMsgBtn.classList.remove('disabled-menu-item'); 
+                deleteMsgBtn.classList.remove('disabled-menu-item'); 
             } else {
-                editMsgBtn.classList.add('disabled-menu-item'); // Ne peut pas modifier le message de l'autre
-                deleteMsgBtn.classList.remove('disabled-menu-item'); // MAIS PEUT LE SUPPRIMER POUR LUI
+                editMsgBtn.classList.add('disabled-menu-item'); 
+                deleteMsgBtn.classList.remove('disabled-menu-item'); 
             }
         });
         
         messagesDiv.appendChild(div);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
         
-        // Jwe son sèlman si se lòt moun nan ki voye l
-        if(!isMe && !isInitialLoad && notifSound) {
+        // Jouer le son si ce n'est pas moi et que l'audio est débloqué
+        if(!isMe && !isInitialLoad && notifSound && audioUnlocked) {
             notifSound.currentTime = 0;
-            let playPromise = notifSound.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(e => console.log("Son an poko gen pèmisyon nan navigatè a"));
-            }
+            notifSound.play().catch(e => console.warn("Impossible de jouer le son:", e));
         }
     });
 
-    // Modification en temps réel
+    // Lè yon mesaj change (swa yo modifye l, swa lè a konfime)
     chatRef.on('child_changed', (snapshot) => {
         const msgKey = snapshot.key;
         const msg = snapshot.val();
@@ -279,12 +285,12 @@ function loadMessages() {
 
         if(msgBubble) {
             const timeString = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const editedTag = msg.isEdited ? ' <span style="font-size: 11px; opacity: 0.6; font-style: italic;">(Modifié)</span>' : '';
+            // Verifikasyon Strik : asire w isEdited vrèman VRAI avan w afiche mo a
+            const editedTag = (msg.isEdited === true) ? ' <span style="font-size: 11px; opacity: 0.6; font-style: italic;">(Modifié)</span>' : '';
             msgBubble.innerHTML = `${msg.text}${editedTag}<span class="msg-time">${timeString}</span>`;
         }
     });
 
-    // Suppression en temps réel (pour tout le monde)
     chatRef.on('child_removed', (snapshot) => {
         const msgKey = snapshot.key;
         const msgBubble = document.getElementById(msgKey);
