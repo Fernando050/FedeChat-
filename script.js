@@ -296,12 +296,12 @@ function loadMessages() {
         messagesDiv.appendChild(div);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
         
-                // JOUER LE SON (Sèlman si bouton an aktive)
-        if(!isMe && !isInitialLoad && notifSound && isAudioUnlocked && isSoundEnabled) {
+        // JOUER LE SON (Sèlman si bouton an aktive)
+        if(!isMe && !isInitialLoad && notifSound && audioUnlocked && isSoundEnabled) {
             notifSound.currentTime = 0;
             notifSound.play().catch(e => console.log("Erreur audio non critique"));
         }
-
+    });
 
     // Lè yon mesaj change (swa yo modifye l, swa lè a konfime)
     chatRef.on('child_changed', (snapshot) => {
@@ -352,4 +352,3 @@ function sendMessage() {
     
     input.value = '';
 }
-
