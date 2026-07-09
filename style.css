@@ -1,8 +1,6 @@
 /* RESET, FONTS & THEME VARIABLES */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+    margin: 0; padding: 0; box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
 }
 
@@ -16,7 +14,6 @@
     --text-muted: rgba(255, 255, 255, 0.6);
 }
 
-/* LIGHT THEME */
 body.light-theme {
     --bg-main: linear-gradient(135deg, #f5f7fa, #c3cfe2);
     --text-main: #222;
@@ -27,7 +24,6 @@ body.light-theme {
     --text-muted: rgba(0, 0, 0, 0.6);
 }
 
-/* HACKER THEME */
 body.hacker-theme {
     --bg-main: #000;
     --text-main: #0f0;
@@ -39,97 +35,80 @@ body.hacker-theme {
 }
 
 body {
-    background: var(--bg-main);
-    color: var(--text-main);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    transition: background 0.5s ease;
+    background: var(--bg-main); color: var(--text-main);
+    height: 100vh; display: flex; justify-content: center; align-items: center;
+    overflow: hidden; transition: background 0.5s ease;
 }
 
 /* GLASSMORPHISM */
 .glass-container {
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
-    display: none;
+    background: var(--glass-bg); backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border);
+    border-radius: 20px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6); display: none;
+    width: 100%; max-width: 900px;
 }
 .glass-container.active { display: flex; flex-direction: column; }
 
-/* AUTH SCREEN & LOGO */
-#authScreen {
-    width: 90%;
-    max-width: 400px;
-    padding: 40px 30px;
-    text-align: center;
-    animation: fadeIn 0.5s ease;
-}
+/* AUTH SCREEN */
+#authScreen { width: 90%; max-width: 400px; padding: 40px 30px; text-align: center; }
 .graffiti-logo {
-    font-family: 'Sedgwick Ave Display', cursive;
-    font-size: 55px;
-    color: #00ffcc;
-    margin-bottom: 5px;
-    transform: rotate(-3deg);
+    font-family: 'Sedgwick Ave Display', cursive; font-size: 55px; color: #00ffcc;
+    margin-bottom: 5px; transform: rotate(-3deg);
     text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 0 0 15px #00ffcc;
 }
 .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; }
-
-/* INPUTS */
 .input-group { margin-bottom: 15px; }
 input {
-    width: 100%;
-    padding: 14px 16px;
-    background: var(--input-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    color: var(--text-main);
-    font-size: 15px;
-    transition: 0.3s;
+    width: 100%; padding: 14px 16px; background: var(--input-bg);
+    border: 1px solid var(--glass-border); border-radius: 12px;
+    color: var(--text-main); font-size: 15px; transition: 0.3s;
 }
 input:focus { outline: none; border-color: #00ffcc; }
 input:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* BUTTONS */
-.btn {
-    padding: 14px; border: none; border-radius: 12px;
-    font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s;
-}
-.graffiti-btn {
-    width: 100%;
-    background: linear-gradient(45deg, #00ffcc, #0099ff);
-    color: #000; text-transform: uppercase; margin-top: 10px;
-}
+.btn { padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+.graffiti-btn { width: 100%; background: linear-gradient(45deg, #00ffcc, #0099ff); color: #000; text-transform: uppercase; margin-top: 10px; }
 .switch-text { margin-top: 20px; font-size: 13px; color: var(--text-muted); }
 .switch-text span { color: #00ffcc; cursor: pointer; font-weight: 600; }
 
+.install-btn { width: 100%; background: #ffcc00; color: #000; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
+
 /* CHAT SCREEN */
-.chat-container {
-    width: 100%; max-width: 900px; height: 90vh; max-height: 800px;
-    overflow: hidden; padding: 0; position: relative; animation: slideUp 0.5s ease;
-}
+.chat-container { height: 95vh; max-height: 800px; overflow: hidden; padding: 0; position: relative; }
 .chat-header {
     background: rgba(0, 0, 0, 0.3); padding: 15px 20px;
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; justify-content: space-between; align-items: center; position: relative;
 }
-.header-actions { display: flex; gap: 10px; }
-.theme-btn { background: transparent; padding: 6px; font-size: 18px; }
 .user-info { display: flex; align-items: center; gap: 10px; }
 .status-dot { width: 10px; height: 10px; background: #00ffcc; border-radius: 50%; }
 .my-id-text { font-size: 14px; font-weight: 600; }
-.danger-btn-sm { background: rgba(255, 77, 77, 0.1); color: #ff4d4d; padding: 6px 12px; }
 
+/* MENI PRENSIPAL (HEADER MENU) */
+.header-menu-container { position: relative; }
+.header-menu-btn {
+    background: transparent; border: none; color: var(--text-main);
+    font-size: 24px; cursor: pointer; padding: 0 10px;
+}
+.header-dropdown {
+    display: none; position: absolute; top: 40px; right: 0;
+    background: #fff; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+    border-radius: 8px; overflow: hidden; z-index: 1000; min-width: 180px;
+}
+.header-dropdown.show { display: flex; flex-direction: column; animation: popIn 0.2s ease; }
+.header-dropdown button {
+    background: transparent; border: none; padding: 15px 20px;
+    cursor: pointer; text-align: left; font-size: 14px; color: #333;
+    font-weight: 600; transition: 0.2s; width: 100%;
+}
+.header-dropdown button:hover { background: #f0f0f0; }
+.menu-divider { height: 1px; background: #ddd; margin: 0; }
+
+/* CHAT AREA */
 .connect-peer-box { padding: 15px 20px; display: flex; gap: 10px; }
-.connect-btn { background: #bf00ff; color: white; padding: 10px 15px; }
-
-.active-chat-info { text-align: center; padding: 10px; font-size: 13px; background: rgba(0,0,0,0.2); }
+.connect-btn { background: #bf00ff; color: white; padding: 10px 15px; flex-shrink: 0; }
+.active-chat-info { text-align: center; padding: 8px; font-size: 13px; background: rgba(0,0,0,0.2); }
 .neon-text { color: #00ffcc; font-weight: bold; }
 
-/* MESSAGES */
 .messages-area {
     flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
 }
@@ -140,84 +119,33 @@ input:disabled { opacity: 0.5; cursor: not-allowed; }
     font-size: 15px; line-height: 1.4; position: relative; word-wrap: break-word;
     display: flex; flex-direction: column;
 }
-
-/* ACTIONS (Meni ak Twa Pwen pou Modifye/Efase) */
 .msg-sent {
-    align-self: flex-end;
-    background: linear-gradient(135deg, #0099ff, #00ffcc);
-    color: #000; 
-    border-bottom-right-radius: 4px;
-    padding-right: 35px; /* Bay bouton meni an espas */
+    align-self: flex-end; background: linear-gradient(135deg, #0099ff, #00ffcc);
+    color: #000; border-bottom-right-radius: 4px; cursor: pointer; transition: 0.2s;
 }
-
 .msg-received {
     align-self: flex-start; background: var(--msg-received-bg);
     border: 1px solid var(--glass-border); border-bottom-left-radius: 4px;
 }
 
-.msg-menu-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: transparent;
-    border: none;
-    font-size: 18px;
-    font-weight: bold;
-    color: rgba(0, 0, 0, 0.6);
-    cursor: pointer;
-    padding: 0 8px;
-    border-radius: 50%;
-    transition: 0.2s;
+/* Lè w klike sou mesaj ou a pou w ka modifye/efase l */
+.msg-sent.selected-msg {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px #00ffcc, 0 0 5px rgba(255, 255, 255, 0.8) inset;
+    border: 2px solid white;
 }
-.msg-menu-btn:hover { background: rgba(255, 255, 255, 0.3); }
-
-/* Bwat Dropdown ki kache a */
-.msg-dropdown {
-    display: none;
-    position: absolute;
-    top: 35px;
-    right: 5px;
-    background: #fff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    overflow: hidden;
-    z-index: 100;
-    min-width: 120px;
-}
-
-/* Lè meni an aktif */
-.msg-dropdown.show {
-    display: flex;
-    flex-direction: column;
-    animation: popIn 0.2s ease;
-}
-
-.msg-dropdown button {
-    background: transparent;
-    border: none;
-    padding: 12px 15px;
-    cursor: pointer;
-    text-align: left;
-    font-size: 14px;
-    color: #333;
-    font-weight: 600;
-    width: 100%;
-    transition: 0.2s;
-}
-
-.msg-dropdown button:hover { background: #f0f0f0; }
-.msg-dropdown button.delete-btn { color: #ff4d4d; }
 
 .msg-time { font-size: 10px; margin-top: 5px; opacity: 0.7; text-align: right; }
 
 .input-area { padding: 15px 20px; background: rgba(0, 0, 0, 0.3); display: flex; gap: 10px; }
-.send-btn { background: #00ffcc; color: #000; padding: 10px 20px; }
+.send-btn { background: #00ffcc; color: #000; padding: 10px 20px; flex-shrink: 0; }
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
+/* RESPONSIVE POU TELEFÒN YO */
 @media (max-width: 600px) {
     .chat-container { height: 100vh; border-radius: 0; }
     .message-bubble { max-width: 85%; }
+    .connect-peer-box { flex-direction: column; }
+    .connect-btn { width: 100%; }
 }
