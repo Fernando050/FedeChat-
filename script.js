@@ -366,104 +366,144 @@ const remoteVideo = document.getElementById('remoteVideo');
 const localVideo = document.getElementById('localVideo');
 const answerBtn = document.getElementById('answerBtn');
 const hangupBtn = document.getElementById('hangupBtn');
-const callBtn = document.getElementById('callBtn');
 const callBtnContainer = document.getElementById('callBtnContainer');
+const audioCallBtn = document.getElementById('audioCallBtn');
+const videoCallBtn = document.getElementById('videoCallBtn');
+const ringtoneSound = document.getElementById('ringtoneSound');
 
-// Inisyalize PeerJS lè moun nan konekte (Mete sa nan auth.onAuthStateChanged)
+// Inisyalize PeerJS lè moun nan konekte
 auth.onAuthStateChanged((user) => {
     if (user) {
-        // ... (Ansyen kòd yo rete la)
         currentUserId = user.email.split('@')[0];
         
-        // Fèmen ansyen koneksyon Peer la si l te egziste
         if (peer) peer.destroy();
-        
-        // Kreye nouvo koneksyon an avèk ID itilizatè a
         peer = new Peer(currentUserId);
         
         peer.on('open', (id) => {
             console.log("Sistèm apèl la pare avèk ID: " + id);
         });
 
-        // Lè yon moun ap rele w
+        // LÈ YON MOUN AP RELE W
         peer.on('call', (call) => {
+            currentCall = call;
+            
+            // Gade ki kalite apèl li ye (Odyo oswa Videyo)
+            const isVideoCall = call.metadata ? call.metadata.type === 'video' : true;
+            
             videoModal.style.display = 'flex';
-            callStatus.innerText = call.peer + " ap rele w...";
+            callStatus.innerText = call.peer + (isVideoCall ? " ap fè yon apèl Videyo..." : " ap fè yon apèl Odyo...");
             answerBtn.style.display = 'block';
+            
+            // Kache ti videyo pa w la si se apèl odyo
+            localVideo.style.display = isVideoCall ? 'block' : 'none';
+            
+            if (ringtoneSound) ringtoneSound.play().catch(e => console.log(e));
 
             // Si w chwazi reponn
             answerBtn.onclick = () => {
-                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                if (ringtoneSound) {
+                    ringtoneSound.pause();
+                    ringtoneSound.currentTime = 0;
+                }
+
+                // Louvri kamera ak mikwo SELON KALITE APÈL LA
+                navigator.mediaDevices.getUserMedia({ video: isVideoCall, audio: true })
                 .then((stream) => {
                     localStream = stream;
-                    localVideo.srcObject = stream;
+                    if (isVideoCall) localVideo.srcObject = stream;
+                    
                     answerBtn.style.display = 'none';
                     callStatus.innerText = "W ap pale ak " + call.peer;
                     
-                    call.answer(stream); // Voye videyo pa w la ba li
-                    currentCall = call;
+                    call.answer(stream);
 
                     call.on('stream', (remoteStream) => {
-                        remoteVideo.srcObject = remoteStream; // Afiche videyo l la
+                        remoteVideo.srcObject = remoteStream;
                     });
                     
                     call.on('close', stopCallUI);
                 })
-                .catch(err => alert("Nou pa ka jwenn aksè ak Kamera/Mikwo a."));
+                .catch(err => {
+                    alert("Erè: " + err.message);
+                    stopCallUI();
+                });
             };
         });
     }
 });
 
-// Pou w wè bouton rele a lè w chwazi yon moun
+// Pou w wè 2 bouton yo lè w chwazi yon moun
 document.getElementById('connectPeerBtn').addEventListener('click', () => {
-    // Bouton an ap parèt otomatikman
     if(currentPeerId && currentPeerId !== currentUserId) {
-        callBtnContainer.style.display = 'block';
+        callBtnContainer.style.display = 'flex'; // Itilize flex pou yo ka kanpe kòtakòt
     }
 });
 
-// Lè w klike sou bouton Rele a
-callBtn.addEventListener('click', () => {
+// FONKSYON POU LANSE YON APÈL (Odyo oswa Videyo)
+function makeCall(type) {
     if(!currentPeerId || !peer) return;
     
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    const isVideoCall = (type === 'video');
+    
+    navigator.mediaDevices.getUserMedia({ video: isVideoCall, audio: true })
     .then((stream) => {
         localStream = stream;
-        localVideo.srcObject = stream;
         
         videoModal.style.display = 'flex';
         callStatus.innerText = "W ap sonnen " + currentPeerId + "...";
         answerBtn.style.display = 'none';
         
-        // Lanse apèl la
-        const call = peer.call(currentPeerId, stream);
+        // Kache ti videyo pa w la si se odyo sèlman
+        localVideo.style.display = isVideoCall ? 'block' : 'none';
+        if (isVideoCall) localVideo.srcObject = stream;
+        
+        // Voye apèl la avèk "metadata" pou lòt moun nan konnen ki tip apèl li ye
+        const call = peer.call(currentPeerId, stream, { metadata: { type: type } });
         currentCall = call;
 
         call.on('stream', (remoteStream) => {
              callStatus.innerText = "W ap pale ak " + currentPeerId;
-             remoteVideo.srcObject = remoteStream; // Afiche videyo l la lè l reponn
+             remoteVideo.srcObject = remoteStream;
         });
         
         call.on('close', stopCallUI);
     })
-    .catch(err => alert("Nou pa ka jwenn aksè ak Kamera/Mikwo a."));
+    .catch(err => alert("Erè: " + err.message));
+}
+
+// Lè w klike sou bouton Odyo a
+audioCallBtn.addEventListener('click', () => {
+    makeCall('audio');
 });
 
-// Bouton pou fèmen apèl la
+// Lè w klike sou bouton Videyo a
+videoCallBtn.addEventListener('click', () => {
+    makeCall('video');
+});
+
+// LÈ W KLIKE SOU BOUTON FÈMEN AN
 hangupBtn.addEventListener('click', () => {
-    if(currentCall) currentCall.close();
+    if(currentCall) {
+        currentCall.close();
+    }
     stopCallUI();
 });
 
-// Netwaye ekran an epi fèmen kamera a lè apèl la fini
+// FONKSYON POU NETWAYE EKRAN AN (Fèmen apèl la nèt)
 function stopCallUI() {
     videoModal.style.display = 'none';
-    if(localStream) {
-        localStream.getTracks().forEach(track => track.stop()); // Fèmen limyè kamera a
+    
+    if (ringtoneSound) {
+        ringtoneSound.pause();
+        ringtoneSound.currentTime = 0;
     }
+
+    if(localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
+    
     localVideo.srcObject = null;
     remoteVideo.srcObject = null;
     currentCall = null;
 }
-
