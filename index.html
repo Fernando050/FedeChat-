@@ -17,6 +17,8 @@
     <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script defer src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
 </head>
 <body>
 
@@ -56,7 +58,25 @@
                 <span class="status-dot"></span>
                 <span id="myIdDisplay" class="my-id-text">Konekte kòm: ...</span>
             </div>
+
+                    <div id="callBtnContainer" style="display:none; text-align:center; padding-top: 10px;">
+            <button class="btn" id="callBtn" style="background: #00ffcc; color: black; font-weight: bold;">📹 Rele Moun sa</button>
+        </div>
+
+        <div id="videoModal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,12,41,0.95); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+            <h3 id="callStatus" class="neon-text" style="margin-bottom: 20px;">...</h3>
             
+            <div style="position: relative; width: 90%; max-width: 500px;">
+                <video id="remoteVideo" autoplay playsinline style="width: 100%; border-radius: 15px; border: 3px solid #00ffcc; background: #000; min-height: 200px;"></video>
+                <video id="localVideo" autoplay playsinline muted style="width: 30%; position: absolute; bottom: 10px; right: 10px; border-radius: 10px; border: 2px solid #bf00ff; background: #333;"></video>
+            </div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 20px;">
+                <button id="answerBtn" class="btn" style="background: #00ffcc; color: #000; display: none;">📞 Reponn</button>
+                <button id="hangupBtn" class="btn" style="background: #ff4d4d; color: white;">📵 Fèmen</button>
+            </div>
+        </div>
+
             <div class="menu-container">
                 <button class="menu-dots-btn" id="menuToggleBtn">&#8942;</button>
                 <div class="dropdown-menu" id="dropdownMenu">
