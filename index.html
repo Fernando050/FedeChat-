@@ -67,14 +67,25 @@
             <button class="btn" id="videoCallBtn" style="background: #00ffcc; color: black; font-weight: bold;">📹 Apèl Videyo</button>
         </div>
 
+    <div id="videoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000;">
+        
+        <video id="remoteVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;"></video>
+        
+        <video id="localVideo" autoplay muted playsinline style="width: 100px; height: 150px; object-fit: cover; position: absolute; bottom: 110px; right: 20px; z-index: 2; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);"></video>
 
-        <div id="videoModal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,12,41,0.95); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
-            <h3 id="callStatus" class="neon-text" style="margin-bottom: 20px;">...</h3>
-            
-            <div style="position: relative; width: 90%; max-width: 500px;">
-                <video id="remoteVideo" autoplay playsinline style="width: 100%; border-radius: 15px; border: 3px solid #00ffcc; background: #000; min-height: 200px;"></video>
-                <video id="localVideo" autoplay playsinline muted style="width: 30%; position: absolute; bottom: 10px; right: 10px; border-radius: 10px; border: 2px solid #bf00ff; background: #333;"></video>
-            </div>
+        <div style="position: absolute; top: 30px; width: 100%; text-align: center; color: white; z-index: 3; font-family: sans-serif;">
+            <div id="callStatus" style="font-weight: bold; font-size: 18px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">Apèl ap chaje...</div>
+            <div id="callTimer" style="font-size: 16px; margin-top: 5px; color: #00ffcc; text-shadow: 0 2px 4px rgba(0,0,0,0.8); display: none; font-weight: bold;">00:00</div>
+        </div>
+
+        <div style="position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: center; gap: 15px; z-index: 3; flex-wrap: wrap;">
+            <button id="muteAudioBtn" class="btn" style="background: rgba(255,255,255,0.2); color: white; border-radius: 50%; width: 55px; height: 55px; font-size: 20px; border: none; cursor: pointer;">🎤</button>
+            <button id="toggleVideoBtn" class="btn" style="background: rgba(255,255,255,0.2); color: white; border-radius: 50%; width: 55px; height: 55px; font-size: 20px; border: none; cursor: pointer;">📷</button>
+            <button id="shareScreenBtn" class="btn" style="background: rgba(255,255,255,0.2); color: white; border-radius: 50%; width: 55px; height: 55px; font-size: 20px; border: none; cursor: pointer;">🖥️</button>
+            <button id="answerBtn" class="btn" style="display: none; background: #00ffcc; color: black; border-radius: 50%; width: 55px; height: 55px; font-size: 20px; box-shadow: 0 0 15px #00ffcc; border: none; cursor: pointer;">📞</button>
+            <button id="hangupBtn" class="btn" style="background: #ff4d4d; color: white; border-radius: 50%; width: 55px; height: 55px; font-size: 20px; box-shadow: 0 0 15px #ff4d4d; border: none; cursor: pointer;"></div>
+    </div>
+
             
             <div style="margin-top: 20px; display: flex; gap: 20px;">
                 <button id="answerBtn" class="btn" style="background: #00ffcc; color: #000; display: none;">📞 Reponn</button>
