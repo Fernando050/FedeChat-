@@ -352,3 +352,118 @@ function sendMessage() {
     
     input.value = '';
 }
+
+// ==========================================
+// 6. SYSTÈME D'APPELS VIDÉO/AUDIO (PEERJS)
+// ==========================================
+let peer = null;
+let currentCall = null;
+let localStream = null;
+
+const videoModal = document.getElementById('videoModal');
+const callStatus = document.getElementById('callStatus');
+const remoteVideo = document.getElementById('remoteVideo');
+const localVideo = document.getElementById('localVideo');
+const answerBtn = document.getElementById('answerBtn');
+const hangupBtn = document.getElementById('hangupBtn');
+const callBtn = document.getElementById('callBtn');
+const callBtnContainer = document.getElementById('callBtnContainer');
+
+// Inisyalize PeerJS lè moun nan konekte (Mete sa nan auth.onAuthStateChanged)
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        // ... (Ansyen kòd yo rete la)
+        currentUserId = user.email.split('@')[0];
+        
+        // Fèmen ansyen koneksyon Peer la si l te egziste
+        if (peer) peer.destroy();
+        
+        // Kreye nouvo koneksyon an avèk ID itilizatè a
+        peer = new Peer(currentUserId);
+        
+        peer.on('open', (id) => {
+            console.log("Sistèm apèl la pare avèk ID: " + id);
+        });
+
+        // Lè yon moun ap rele w
+        peer.on('call', (call) => {
+            videoModal.style.display = 'flex';
+            callStatus.innerText = call.peer + " ap rele w...";
+            answerBtn.style.display = 'block';
+
+            // Si w chwazi reponn
+            answerBtn.onclick = () => {
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then((stream) => {
+                    localStream = stream;
+                    localVideo.srcObject = stream;
+                    answerBtn.style.display = 'none';
+                    callStatus.innerText = "W ap pale ak " + call.peer;
+                    
+                    call.answer(stream); // Voye videyo pa w la ba li
+                    currentCall = call;
+
+                    call.on('stream', (remoteStream) => {
+                        remoteVideo.srcObject = remoteStream; // Afiche videyo l la
+                    });
+                    
+                    call.on('close', stopCallUI);
+                })
+                .catch(err => alert("Nou pa ka jwenn aksè ak Kamera/Mikwo a."));
+            };
+        });
+    }
+});
+
+// Pou w wè bouton rele a lè w chwazi yon moun
+document.getElementById('connectPeerBtn').addEventListener('click', () => {
+    // Bouton an ap parèt otomatikman
+    if(currentPeerId && currentPeerId !== currentUserId) {
+        callBtnContainer.style.display = 'block';
+    }
+});
+
+// Lè w klike sou bouton Rele a
+callBtn.addEventListener('click', () => {
+    if(!currentPeerId || !peer) return;
+    
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    .then((stream) => {
+        localStream = stream;
+        localVideo.srcObject = stream;
+        
+        videoModal.style.display = 'flex';
+        callStatus.innerText = "W ap sonnen " + currentPeerId + "...";
+        answerBtn.style.display = 'none';
+        
+        // Lanse apèl la
+        const call = peer.call(currentPeerId, stream);
+        currentCall = call;
+
+        call.on('stream', (remoteStream) => {
+             callStatus.innerText = "W ap pale ak " + currentPeerId;
+             remoteVideo.srcObject = remoteStream; // Afiche videyo l la lè l reponn
+        });
+        
+        call.on('close', stopCallUI);
+    })
+    .catch(err => alert("Nou pa ka jwenn aksè ak Kamera/Mikwo a."));
+});
+
+// Bouton pou fèmen apèl la
+hangupBtn.addEventListener('click', () => {
+    if(currentCall) currentCall.close();
+    stopCallUI();
+});
+
+// Netwaye ekran an epi fèmen kamera a lè apèl la fini
+function stopCallUI() {
+    videoModal.style.display = 'none';
+    if(localStream) {
+        localStream.getTracks().forEach(track => track.stop()); // Fèmen limyè kamera a
+    }
+    localVideo.srcObject = null;
+    remoteVideo.srcObject = null;
+    currentCall = null;
+}
+
