@@ -40,6 +40,7 @@ const dropdownMenu = document.getElementById('dropdownMenu');
 const editMsgBtn = document.getElementById('editMsgBtn');
 const deleteMsgBtn = document.getElementById('deleteMsgBtn');
 const themeBtn = document.getElementById('themeBtn');
+
 // ELEMAN POU SON YO
 const soundToggle = document.getElementById('soundToggle');
 const soundSelect = document.getElementById('soundSelect');
@@ -371,6 +372,33 @@ const audioCallBtn = document.getElementById('audioCallBtn');
 const videoCallBtn = document.getElementById('videoCallBtn');
 const ringtoneSound = document.getElementById('ringtoneSound');
 
+// Nouvo varyab pou Mute, Timer, ak Pataje Ekran
+let isAudioMuted = false;
+let isVideoOff = false;
+let screenStream = null;
+let timerInterval = null;
+let secondsElapsed = 0;
+
+const muteAudioBtn = document.getElementById('muteAudioBtn');
+const toggleVideoBtn = document.getElementById('toggleVideoBtn');
+const shareScreenBtn = document.getElementById('shareScreenBtn');
+const callTimer = document.getElementById('callTimer');
+
+// Fonksyon pou kòmanse konte tan apèl la
+function startCallTimer() {
+    secondsElapsed = 0;
+    callTimer.innerText = "00:00";
+    callTimer.style.display = "block";
+    clearInterval(timerInterval); // Netwaye si te gen yon ansyen k ap mache
+    
+    timerInterval = setInterval(() => {
+        secondsElapsed++;
+        const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+        const secs = String(secondsElapsed % 60).padStart(2, '0');
+        callTimer.innerText = mins + ":" + secs;
+    }, 1000);
+}
+
 // Inisyalize PeerJS lè moun nan konekte
 auth.onAuthStateChanged((user) => {
     if (user) {
@@ -418,7 +446,9 @@ auth.onAuthStateChanged((user) => {
                     call.answer(stream);
 
                     call.on('stream', (remoteStream) => {
+                        callStatus.innerText = "W ap pale ak " + (currentPeerId || call.peer);
                         remoteVideo.srcObject = remoteStream;
+                        startCallTimer(); // 🌟 Kòmanse revèy la isit la
                     });
                     
                     call.on('close', stopCallUI);
@@ -464,6 +494,7 @@ function makeCall(type) {
         call.on('stream', (remoteStream) => {
              callStatus.innerText = "W ap pale ak " + currentPeerId;
              remoteVideo.srcObject = remoteStream;
+             startCallTimer(); // 🌟 Kòmanse revèy la isit la
         });
         
         call.on('close', stopCallUI);
@@ -489,10 +520,20 @@ hangupBtn.addEventListener('click', () => {
     stopCallUI();
 });
 
-// FONKSYON POU NETWAYE EKRAN AN (Fèmen apèl la nèt)
+// FONKSYON POU NETWAYE EKRAN AN (Vèsyon Amelyore)
 function stopCallUI() {
     videoModal.style.display = 'none';
     
+    // Sispann revèy la
+    clearInterval(timerInterval);
+    callTimer.style.display = "none";
+    
+    // Sispann pataje ekran si l te limen
+    if (screenStream) {
+        screenStream.getTracks().forEach(track => track.stop());
+        screenStream = null;
+    }
+
     if (ringtoneSound) {
         ringtoneSound.pause();
         ringtoneSound.currentTime = 0;
@@ -503,7 +544,99 @@ function stopCallUI() {
         localStream = null;
     }
     
+    // Remete bouton yo nan fòm orijinal yo
+    isAudioMuted = false;
+    isVideoOff = false;
+    muteAudioBtn.style.background = "rgba(255,255,255,0.2)";
+    muteAudioBtn.innerText = "🎤";
+    toggleVideoBtn.style.background = "rgba(255,255,255,0.2)";
+    toggleVideoBtn.innerText = "📷";
+    shareScreenBtn.style.background = "rgba(255,255,255,0.2)";
+    shareScreenBtn.style.color = "white";
+    
     localVideo.srcObject = null;
     remoteVideo.srcObject = null;
     currentCall = null;
+}
+
+// ==========================================
+// KONTWÒL PANDAN APÈL (MUTE, KAMERA, EKRAN)
+// ==========================================
+
+// 1. Bouton Mute Mikwo
+muteAudioBtn.addEventListener('click', () => {
+    if (!localStream) return;
+    const audioTrack = localStream.getAudioTracks()[0];
+    if (audioTrack) {
+        isAudioMuted = !isAudioMuted;
+        audioTrack.enabled = !isAudioMuted; // Limen oswa koupe odyo a
+        muteAudioBtn.style.background = isAudioMuted ? "#ff4d4d" : "rgba(255,255,255,0.2)";
+        muteAudioBtn.innerText = isAudioMuted ? "🔇" : "🎤";
+    }
+});
+
+// 2. Bouton Limen/Kache Kamera
+toggleVideoBtn.addEventListener('click', () => {
+    if (!localStream) return;
+    const videoTrack = localStream.getVideoTracks()[0];
+    if (videoTrack) {
+        isVideoOff = !isVideoOff;
+        videoTrack.enabled = !isVideoOff; // Limen oswa koupe videyo a
+        toggleVideoBtn.style.background = isVideoOff ? "#ff4d4d" : "rgba(255,255,255,0.2)";
+        toggleVideoBtn.innerText = isVideoOff ? "❌📷" : "📷";
+        localVideo.style.display = isVideoOff ? "none" : "block"; // Kache ti kare pa w la
+    }
+});
+
+// 3. Bouton Pataje Ekran (Screen Sharing)
+shareScreenBtn.addEventListener('click', async () => {
+    if (!currentCall || !localStream) return;
+    
+    try {
+        if (!screenStream) {
+            // Mande pèmisyon pou pran ekran an
+            screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            const screenTrack = screenStream.getVideoTracks()[0];
+            
+            // Ranplase kouran videyo kamera a ak kouran ekran an bay lòt moun nan
+            const senders = currentCall.peerConnection.getSenders();
+            const videoSender = senders.find(sender => sender.track && sender.track.kind === 'video');
+            if (videoSender) {
+                videoSender.replaceTrack(screenTrack);
+            }
+            
+            localVideo.srcObject = screenStream; // Montre ekran w ap pataje a nan ti kare pa w la tou
+            shareScreenBtn.style.background = "#00ffcc";
+            shareScreenBtn.style.color = "black";
+            
+            // Si moun nan klike sou bouton sistèm lan pou sispann pataje
+            screenTrack.onended = () => {
+                stopScreenShare();
+            };
+        } else {
+            stopScreenShare();
+        }
+    } catch (err) {
+        console.error("Erè nan pataje ekran:", err);
+    }
+});
+
+// Fonksyon pou sispann pataje ekran epi remete kamera a
+function stopScreenShare() {
+    if (!screenStream || !currentCall || !localStream) return;
+    
+    screenStream.getTracks().forEach(track => track.stop());
+    screenStream = null;
+    
+    const originalVideoTrack = localStream.getVideoTracks()[0];
+    const senders = currentCall.peerConnection.getSenders();
+    const videoSender = senders.find(sender => sender.track && sender.track.kind === 'video');
+    
+    if (videoSender && originalVideoTrack) {
+        videoSender.replaceTrack(originalVideoTrack); // Remete kamera nòmal la
+    }
+    
+    localVideo.srcObject = localStream;
+    shareScreenBtn.style.background = "rgba(255,255,255,0.2)";
+    shareScreenBtn.style.color = "white";
 }
